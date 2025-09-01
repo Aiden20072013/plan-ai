@@ -1,3 +1,4 @@
+import { getAuthenticatedUser } from "@/app/actions";
 import { GenerateEvent, Goal } from "@/types/db-types";
 import { createClient, getProfile } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
@@ -16,9 +17,9 @@ export async function POST(req: NextRequest) {
         }
 
         // Check if user is authenticated
-        const profile = await getProfile();
+        const { data: { user } } = await getAuthenticatedUser(req);
 
-        if (!profile) {
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
         const { data: schedule, error } = await supabase
             .from("schedules")
             .insert([{
-                user_id: profile.id,
+                user_id: user.id,
                 extra_info: body.extraInfo
             }])
             .select("id")
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
             return {
                 goal_id: goal.id,
                 schedule_id: schedule.id,
-                user_id: profile.id
+                user_id: user.id
             }
         })
 
@@ -59,7 +60,7 @@ export async function POST(req: NextRequest) {
                 end_time: new Date(event.endTime),
                 schedule_id: schedule.id,
                 activity: event.activity,
-                user_id: profile.id,
+                user_id: user.id,
                 date: new Date(event.date),
                 completed: false
             }
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
         const { data, error: mainIdError } = await supabase
             .from("profiles")
             .update({ "main_schedule_id": schedule.id })
-            .eq("id", profile.id);
+            .eq("id", user.id);
         
         if (mainIdError) {
             throw new Error(mainIdError.message);

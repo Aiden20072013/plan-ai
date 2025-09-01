@@ -1,14 +1,14 @@
 import { ai } from "@/lib/ai";
 import { formatDateWithYear } from "@/lib/formatters";
-import { getProfile } from "@/utils/supabase/server";
 import { Type } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthenticatedUser } from "../../../actions";
 
 export async function POST(req: NextRequest) {
     try {
-        const profile = await getProfile();
+        const { data: { user }, error } = await getAuthenticatedUser(req);
 
-        if (!profile) {
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -65,7 +65,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: err.message }, { status: 500 });
         } else if (typeof err === "string") {
             return NextResponse.json({ error: err }, { status: 500 });
+        } else {
+            return NextResponse.json({ error: "An error occurred" }, { status: 500 });
         }
-        return NextResponse.json({ error: "An error occurred" }, { status: 500 });
     }
 }
