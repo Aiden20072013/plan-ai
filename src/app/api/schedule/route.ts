@@ -1,17 +1,24 @@
+import { getAuthenticatedUser } from "@/app/actions";
 import { createClient, getProfile } from "@/utils/supabase/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
         const supabase = await createClient();
 
-        const profile = await getProfile();
+        const { data: { user } } = await getAuthenticatedUser(req);
 
-        if (!profile) {
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        if (!profile.main_schedule_id) {
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("main_schedule_id")
+            .eq("id", user.id)
+            .single();
+
+        if (!profile?.main_schedule_id) {
             return NextResponse.json({ events: [], expired: false });
         }
 

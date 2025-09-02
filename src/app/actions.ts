@@ -51,7 +51,7 @@ export async function addGoalLog(text: string, goal_id: string) {
 export async function getAuthenticatedUser(req: NextRequest) {
     const supabase = await createClient();
 
-    const authHeader = req.headers.get("authorization");
+    const authHeader = req.headers.get("Authorization");
 
     if (authHeader?.startsWith("Bearer ")) {
         const token = authHeader.replace("Bearer ", "");
