@@ -6,7 +6,7 @@ import { getAuthenticatedUser } from "../../../actions";
 
 export async function POST(req: NextRequest) {
     try {
-        const { data: { user }, error } = await getAuthenticatedUser(req);
+        const [supabase, user] = await getAuthenticatedUser(req);
 
         if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

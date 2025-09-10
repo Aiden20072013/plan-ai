@@ -1,12 +1,10 @@
 import { getAuthenticatedUser } from "@/app/actions";
 import { GenerateEvent, Goal } from "@/types/db-types";
-import { createClient, getProfile } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const supabase = await createClient();
 
         if (!body.data) {
             return NextResponse.json({ error: "Events required" }, { status: 400 });
@@ -17,7 +15,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Check if user is authenticated
-        const { data: { user } } = await getAuthenticatedUser(req);
+        const [supabase, user] = await getAuthenticatedUser(req);
 
         if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
