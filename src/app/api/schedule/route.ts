@@ -1,12 +1,10 @@
 import { getAuthenticatedUser } from "@/app/actions";
-import { createClient, getProfile } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
     try {
-        const supabase = await createClient();
 
-        const { data: { user } } = await getAuthenticatedUser(req);
+        const [supabase, user] = await getAuthenticatedUser(req);
 
         if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

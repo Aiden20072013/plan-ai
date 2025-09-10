@@ -2,15 +2,12 @@ import { getAuthenticatedUser } from "@/app/actions";
 import { ai } from "@/lib/ai";
 import { formatDateWithYear } from "@/lib/formatters";
 import { GenerateEvent } from "@/types/db-types";
-import { createClient } from "@/utils/supabase/server";
 import { Type } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
     try {
-        const supabase = await createClient();
-
-        const { data: { user } } = await getAuthenticatedUser(req);
+        const [supabase, user] = await getAuthenticatedUser(req);
 
         if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -2,6 +2,7 @@
 
 import { DbEvent } from "@/types/db-types";
 import { createClient, getProfile, getUser } from "@/utils/supabase/server";
+import { SupabaseClient, User } from "@supabase/supabase-js";
 import { NextRequest } from "next/server";
 
 export async function updateChecked(event: DbEvent) {
@@ -48,15 +49,27 @@ export async function addGoalLog(text: string, goal_id: string) {
     return log;
 }
 
-export async function getAuthenticatedUser(req: NextRequest) {
-    const supabase = await createClient();
-
+export async function getAuthenticatedUser(req: NextRequest): Promise<[SupabaseClient, User | null]> {
     const authHeader = req.headers.get("Authorization");
 
     if (authHeader?.startsWith("Bearer ")) {
-        const token = authHeader.replace("Bearer ", "");
-        return supabase.auth.getUser(token);
+
+        const accessToken = authHeader.replace("Bearer ", "");
+        const refreshToken = req.headers.get("X-Refresh-Token");
+        const supabase = await createClient();
+
+        await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken ?? ""
+        })
+
+        const { data: { user } } = await supabase.auth.getUser();
+
+        return [supabase, user];
     }
 
-    return supabase.auth.getUser();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    return [supabase, user];
 }
